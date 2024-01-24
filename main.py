@@ -2,19 +2,34 @@
 
 import discord
 import os
+
 from dotenv import load_dotenv
+from discord.ext import commands
+from discord import app_commands
 
-load_dotenv("discordKeys.env")
+party = []
+
+load_dotenv("environments\discordKeys.env")
 TOKEN = os.getenv('DISCORD_TOKEN')
-class MyClient(discord.Client):
-    async def on_ready(self):
-        print(f'Logged on as {self.user}!')
 
-    async def on_message(self, message):
-        print(f'Message from {message.author}: {message.content}')
-
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.message_content = True
 
-client = MyClient(intents=intents)
-client.run(TOKEN)
+bot = commands.Bot(command_prefix='/', intents=intents)
+
+@bot.event
+async def on_ready():
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} command(s) ")
+    except Exception as e :
+        print(e)
+
+@bot.tree.command(name="go")
+async def goDota2(interaction:discord.Interaction):
+    party.append({"name":interaction.user.name,"id":interaction.user.id})
+    print(f"userid - {interaction.user.id}")
+    print(party)
+    await interaction.response.send_message(f"{interaction.user.mention} esta listo para rankear\n")
+
+bot.run(TOKEN)
